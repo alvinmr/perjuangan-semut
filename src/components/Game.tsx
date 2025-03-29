@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styled from 'styled-components';
+// Removed styled from 'styled-components' import as it's no longer directly used here
 import { RootState } from '../store/store';
 import { 
   addPlayer, 
@@ -25,216 +25,19 @@ import {
 import { drawTerrain } from './Terrain';
 import { drawPlayer } from './Player';
 import { drawExplosion } from './Explosion';
-import { WEAPONS } from '../utils/weapons';
+// Removed unused WEAPONS import
+// import { WEAPONS } from '../utils/weapons';
 
-const GameContainer = styled.div`
-  width: 100%;
-  /* height: 100vh; */ /* Let it inherit height from parent (#root) */
-  height: 100%; 
-  /* Remove flex centering */
-  /* display: flex; */
-  /* justify-content: center; */
-  /* align-items: center; */
-  background: #87CEEB; /* Keep background or adjust as needed */
-  position: relative; /* Needed for absolute positioning of overlays */
-  overflow: hidden; /* Prevent potential scrollbars from overlays */
-`;
+// Import the extracted UI components
+import { HealthBar } from './ui/HealthBar';
+import { GameOverScreen } from './ui/GameOverScreen';
+import { GameStats } from './ui/GameStats';
+import { WindIndicator } from './ui/WindIndicator';
+import { WeaponPanel } from './ui/WeaponPanel';
+import { ControlsOverlay } from './ui/ControlsOverlay';
+import { GameContainer, Canvas, TopOverlay } from './ui/GameLayout';
 
-// Make canvas fill the container and position it correctly
-const Canvas = styled.canvas`
-  display: block; /* Remove extra space below canvas */
-  width: 100%;
-  height: 100%;
-  border: none; /* Remove border or adjust as needed */
-  /* border: 2px solid #000; */ 
-`;
-
-const GameOverlay = styled.div`
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 20px;
-`;
-
-const HealthBar = styled.div<{ health: number }>`
-  width: 200px;
-  height: 20px;
-  background: #ddd;
-  border: 2px solid #000;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: ${props => props.health}%;
-    background: ${props => props.health > 50 ? '#2ecc71' : props.health > 25 ? '#f1c40f' : '#e74c3c'};
-    transition: all 0.3s ease;
-  }
-`;
-
-const GameOverScreen = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-`;
-
-const ResetButton = styled.button`
-  padding: 10px 20px;
-  margin-top: 10px;
-  background: #2ecc71;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  cursor: pointer;
-  
-  &:hover {
-    background: #27ae60;
-  }
-`;
-
-const GameStats = styled.div`
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  display: flex;
-  gap: 20px;
-`;
-
-const StatItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  
-  span:first-child {
-    font-size: 0.8em;
-    opacity: 0.8;
-  }
-  
-  span:last-child {
-    font-size: 1.2em;
-    font-weight: bold;
-  }
-`;
-
-const WindIndicator = styled.div`
-  position: absolute;
-  top: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 5px 15px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const WindArrow = styled.span<{ direction: number }>`
-  transform: rotate(${props => props.direction < 0 ? '180deg' : '0deg'});
-  font-size: 1.2em;
-`;
-
-const WeaponPanel = styled.div`
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  padding: 10px;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const WeaponButton = styled.button<{ isActive: boolean }>`
-  padding: 8px 12px;
-  background: ${props => props.isActive ? '#2ecc71' : '#34495e'};
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: ${props => props.isActive ? '#27ae60' : '#2c3e50'};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const WeaponInfo = styled.div`
-  font-size: 0.8em;
-  color: #bdc3c7;
-  margin-top: 2px;
-`;
-
-const ControlsOverlay = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
-  padding: 20px;
-  border-radius: 10px;
-  z-index: 100;
-`;
-
-const ControlsList = styled.div`
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 10px 20px;
-  margin: 15px 0;
-`;
-
-const ControlItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const KeyHint = styled.span`
-  background: #34495e;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-family: monospace;
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 1.2em;
-  
-  &:hover {
-    color: #e74c3c;
-  }
-`;
+// Removed all styled component definitions previously here
 
 const Game = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -695,129 +498,54 @@ const Game = () => {
 
   // Removed duplicate declaration below
   const currentPlayer = players.find(p => p.id === currentTurn);
-  // Ensure currentPlayer and weapons exist before accessing
-  const currentWeapon = currentPlayer && currentPlayer.currentWeapon && WEAPONS[currentPlayer.currentWeapon] 
-    ? WEAPONS[currentPlayer.currentWeapon] 
-    : null;
+  // Removed unused currentWeapon variable declaration
+  // const currentWeapon = currentPlayer && currentPlayer.currentWeapon && WEAPONS[currentPlayer.currentWeapon] 
+  //   ? WEAPONS[currentPlayer.currentWeapon] 
+  //   : null;
 
   return (
     // Add ref to the container
-    <GameContainer ref={gameContainerRef}> 
+    <GameContainer ref={gameContainerRef}>
       {isInitialized && ( // Only render overlays if initialized
         <>
-          <GameOverlay>
+          {/* Use TopOverlay for health bars */}
+          <TopOverlay>
             {players.map(player => (
-          <HealthBar key={`health-${player.id}`} health={player.health}>
-            {player.id === currentTurn && '➤'} {player.health}%
-          </HealthBar>
-        ))}
-      </GameOverlay>
-      
-      <WindIndicator>
-        <span>Wind:</span>
-        <WindArrow direction={windSpeed}>➜</WindArrow>
-        <span>{Math.abs(windSpeed).toFixed(2)}</span>
-      </WindIndicator>
+              // Use imported HealthBar component
+              <HealthBar key={`health-${player.id}`} health={player.health}>
+                {player.id === currentTurn && '➤'} {player.health}%
+              </HealthBar>
+            ))}
+          </TopOverlay>
 
-      {/* Canvas width/height attributes are now set in the gameLoop */}
-      <Canvas 
+          {/* Use imported WindIndicator component */}
+          <WindIndicator windSpeed={windSpeed} />
+
+          {/* Canvas width/height attributes are now set in the gameLoop */}
+          <Canvas
         ref={canvasRef} 
         /* width={dimensions.width} */ /* Removed */
         /* height={dimensions.height} */ /* Removed */
       />
 
-      {showControls && isInitialized && ( // Also check isInitialized
-        <ControlsOverlay>
-          <h2>Game Controls</h2>
-          <CloseButton onClick={() => setShowControls(false)}>×</CloseButton>
-          <ControlsList>
-            <ControlItem>
-              <KeyHint>←</KeyHint>
-              <span>Decrease Angle</span>
-            </ControlItem>
-            <ControlItem>
-              <KeyHint>→</KeyHint>
-              <span>Increase Angle</span>
-            </ControlItem>
-            <ControlItem>
-              <KeyHint>↑</KeyHint>
-              <span>Increase Power</span>
-            </ControlItem>
-            <ControlItem>
-              <KeyHint>↓</KeyHint>
-              <span>Decrease Power</span>
-            </ControlItem>
-            <ControlItem>
-              <KeyHint>1-4</KeyHint>
-              <span>Select Weapon</span>
-            </ControlItem>
-            <ControlItem>
-              <KeyHint>Space</KeyHint>
-              <span>Fire Weapon</span>
-            </ControlItem>
-            <ControlItem>
-              <KeyHint>H</KeyHint>
-              <span>Show/Hide Controls</span>
-            </ControlItem>
-          </ControlsList>
-          <p>Press any key to start playing!</p>
-        </ControlsOverlay>
+      {/* Use imported ControlsOverlay component */}
+      {showControls && isInitialized && (
+        <ControlsOverlay onClose={() => setShowControls(false)} />
       )}
 
       {currentPlayer && !gameOver && (
         <>
-          <WeaponPanel>
-            {Object.values(WEAPONS).map((weapon, index) => {
-              // Defensive checks for currentPlayer and weapons array
-              const isAvailable = currentPlayer?.weapons?.includes(weapon.id) ?? false;
-              const isActive = currentPlayer?.currentWeapon === weapon.id;
-              // Defensive check for lastShotTime
-              const lastShotTime = currentPlayer?.lastShotTime ?? 0;
-              const canUse = Date.now() - lastShotTime >= weapon.reloadTime * 1000;
+          {/* Use imported WeaponPanel component */}
+          <WeaponPanel currentPlayer={currentPlayer} currentTurn={currentTurn} />
 
-              return (
-                <div key={`weapon-${weapon.id}`}>
-                  <WeaponButton
-                    isActive={isActive}
-                    disabled={!isAvailable || !canUse}
-                    onClick={() => dispatch(switchWeapon({ playerId: currentTurn, weaponId: weapon.id }))}
-                  >
-                    {index + 1}. {weapon.name}
-                  </WeaponButton>
-                  {isActive && (
-                    <WeaponInfo>
-                      Damage: {weapon.damage} | Radius: {weapon.radius}
-                      {weapon.special && ` | ${weapon.special.type}: ${weapon.special.value}`}
-                    </WeaponInfo>
-                  )}
-                </div>
-              );
-            })}
-          </WeaponPanel>
-
-          <GameStats>
-            <StatItem>
-              <span>WEAPON</span>
-              <span>{currentWeapon?.name}</span>
-            </StatItem>
-            <StatItem>
-              <span>ANGLE</span>
-              <span>{currentPlayer.angle}°</span>
-            </StatItem>
-            <StatItem>
-              <span>POWER</span>
-              <span>{currentPlayer.power}%</span>
-            </StatItem>
-          </GameStats>
+          {/* Use imported GameStats component */}
+          <GameStats currentPlayer={currentPlayer} />
         </>
       )}
 
-      {gameOver && isInitialized && ( // Also check isInitialized
-        <GameOverScreen>
-          <h2>Game Over!</h2>
-          <p>Player {winner} wins!</p>
-          <ResetButton onClick={handleReset}>Play Again</ResetButton>
-        </GameOverScreen>
+      {/* Use imported GameOverScreen component */}
+      {gameOver && isInitialized && (
+        <GameOverScreen winner={winner} onReset={handleReset} />
       )}
       </> // Close conditional rendering fragment
      )} 

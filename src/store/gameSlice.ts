@@ -2,9 +2,9 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TerrainMap, createTerrainMap } from '../components/Terrain';
 import { Explosion } from '../components/Explosion';
 import { audioManager } from '../utils/AudioManager';
-import { WEAPONS } from '../utils/weapons';
+import { WEAPONS } from '../utils/weapons'; // Removed unused Weapon import
 
-interface Player {
+export interface Player { // Export the interface
   id: string;
   position: { x: number; y: number };
   health: number;
@@ -32,7 +32,8 @@ interface Projectile {
   bounces: number;
 }
 
-interface GameState {
+// Export GameState if needed elsewhere, or keep internal
+export interface GameState { // Export the interface
   players: Player[];
   currentTurn: string;
   turnTime: number;
@@ -44,6 +45,9 @@ interface GameState {
   terrain: TerrainMap | null;
   explosions: Explosion[];
 }
+
+// Removed unnecessary ProjectileState alias
+// export interface ProjectileState extends Projectile {}
 
 const initialState: GameState = {
   players: [],
